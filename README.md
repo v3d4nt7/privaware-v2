@@ -1,5 +1,5 @@
-@ -1 +1,134 @@
-# privaware-v2
+
+
 # PrivAware v2 — AI-Powered Browser Privacy Inspector
 
 > A Chrome extension that uses two custom-trained NLP models to detect phishing URLs and deceptive privacy policies in real time.
