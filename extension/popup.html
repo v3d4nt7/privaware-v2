@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrivAware</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap");
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --brand:      #7c6fff;
+      --brand-dim:  #5a52d5;
+      --brand-glow: rgba(124,111,255,0.18);
+      --bg:         #0c0c18;
+      --surface:    #13131f;
+      --surface2:   #1a1a2e;
+      --border:     rgba(255,255,255,0.07);
+      --border-hi:  rgba(124,111,255,0.35);
+      --text:       #f0f0ff;
+      --muted:      #7878a0;
+      --danger:     #ff4d6d;
+      --warning:    #f59e0b;
+      --safe:       #22d3a5;
+    }
+
+    body {
+      width: 360px;
+      min-height: 520px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "DM Sans", sans-serif;
+      font-size: 13px;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .logo-svg {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .logo-text {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .logo-text span { color: var(--brand); }
+    .version-pill {
+      font-size: 10px;
+      font-family: "DM Mono", monospace;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 2px 7px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── SITE BAR ── */
+    .site-bar {
+      padding: 9px 16px 8px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .site-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      flex-shrink: 0;
+      box-shadow: 0 0 6px var(--brand);
+    }
+    .site-url {
+      font-size: 11.5px;
+      font-family: "DM Mono", monospace;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── LOADING ── */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 52px 20px;
+      gap: 14px;
+    }
+    .spinner-wrap {
+      position: relative;
+      width: 48px; height: 48px;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 2px solid var(--surface2);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    .spinner-inner {
+      position: absolute;
+      inset: 8px;
+      border: 2px solid transparent;
+      border-bottom-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite reverse;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      font-size: 12.5px;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+
+    /* ── ERROR ── */
+    .error-box {
+      margin: 16px;
+      background: rgba(255,77,109,0.08);
+      border: 1px solid rgba(255,77,109,0.25);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--danger);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── MAIN ── */
+    #main-content { display: none; animation: fadeUp 0.3s ease; }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(6px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── SCORE HERO ── */
+    .score-hero {
+      padding: 20px 16px 16px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: linear-gradient(160deg, var(--surface) 0%, var(--bg) 100%);
+    }
+    .ring-wrap { position: relative; width: 88px; height: 88px; flex-shrink: 0; }
+    .ring-wrap svg { transform: rotate(-90deg); }
+    .ring-bg   { fill: none; stroke: var(--surface2); stroke-width: 7; }
+    .ring-fill {
+      fill: none;
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-dasharray: 240;
+      stroke-dashoffset: 60;
+      transition: stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1), stroke 0.4s;
+    }
+    .ring-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .ring-score {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      transition: color 0.4s;
+    }
+    .ring-max { font-size: 9px; color: var(--muted); margin-top: 1px; }
+
+    .score-meta { flex: 1; min-width: 0; }
+    .risk-label {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      transition: color 0.4s;
+    }
+    .risk-sub {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 0 16px; }
+
+    /* ── MODEL CARDS ── */
+    .cards-wrap { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+    .model-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 13px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .model-card:hover {
+      border-color: var(--border-hi);
+      box-shadow: 0 0 0 1px var(--brand-glow);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .card-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-icon {
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .icon-phish { background: rgba(255,77,109,0.15); }
+    .icon-policy { background: rgba(124,111,255,0.15); }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+    .badge-safe    { background: rgba(34,211,165,0.12); color: var(--safe);    border: 1px solid rgba(34,211,165,0.2); }
+    .badge-risky   { background: rgba(245,158,11,0.12);  color: var(--warning); border: 1px solid rgba(245,158,11,0.2); }
+    .badge-danger  { background: rgba(255,77,109,0.12);  color: var(--danger);  border: 1px solid rgba(255,77,109,0.2); }
+    .badge-neutral { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    .bar-track {
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.8s cubic-bezier(.4,0,.2,1);
+    }
+    .card-meta {
+      font-size: 10px;
+      font-family: "DM Mono", monospace;
+      color: var(--muted);
+    }
+
+    /* ── TRACKERS ── */
+    .trackers-section { padding: 0 16px 12px; }
+    .section-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 7px;
+    }
+    .tags-wrap { display: flex; gap: 5px; flex-wrap: wrap; }
+    .tag {
+      font-size: 10.5px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+    }
+    .tag-ads     { background: rgba(255,77,109,0.1);  color:#ff6b87;  border-color:rgba(255,77,109,0.2); }
+    .tag-analytics { background: rgba(124,111,255,0.1); color:#a78bfa; border-color:rgba(124,111,255,0.2); }
+    .tag-finger  { background: rgba(245,158,11,0.1);  color:#fbbf24;  border-color:rgba(245,158,11,0.2); }
+    .tag-social  { background: rgba(34,211,165,0.1);  color:#34d399;  border-color:rgba(34,211,165,0.2); }
+    .tag-clean   { background: rgba(34,211,165,0.08); color:var(--safe); border-color:rgba(34,211,165,0.15); }
+
+    /* ── EXPLANATION ── */
+    .explanation {
+      margin: 0 16px 14px;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 11px 13px;
+      border-left: 3px solid var(--brand);
+      position: relative;
+      overflow: hidden;
+    }
+    .explanation::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--brand-glow) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .exp-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .exp-text {
+      font-size: 11.5px;
+      color: #a0a0c0;
+      line-height: 1.55;
+    }
+
+    /* ── RESCAN BUTTON ── */
+    .rescan-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 4px 16px 14px;
+      padding: 10px;
+      background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dim) 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: "DM Sans", sans-serif;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px rgba(124,111,255,0.3);
+    }
+    .rescan-btn:hover  { opacity: 0.88; }
+    .rescan-btn:active { transform: scale(0.98); }
+
+    /* ── FOOTER ── */
+    .footer {
+      padding: 9px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .footer-time {
+      font-size: 10px;
+      font-family: "DM Mono", monospace;
+      color: var(--muted);
+    }
+    .footer-link {
+      font-size: 11px;
+      color: var(--brand);
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .footer-link:hover { opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-wrap">
+      <svg class="logo-svg" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1a2e"/>
+            <stop offset="100%" style="stop-color:#16213e"/>
+          </linearGradient>
+          <linearGradient id="sh" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#7c6fff"/>
+            <stop offset="100%" style="stop-color:#4f46e5"/>
+          </linearGradient>
+          <filter id="g"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+        <line x1="32" y1="0" x2="32" y2="128" stroke="#7c6fff" stroke-width="0.4" opacity="0.18"/>
+        <line x1="64" y1="0" x2="64" y2="128" stroke="#7c6fff" stroke-width="0.4" opacity="0.18"/>
+        <line x1="96" y1="0" x2="96" y2="128" stroke="#7c6fff" stroke-width="0.4" opacity="0.18"/>
+        <line x1="0" y1="32" x2="128" y2="32" stroke="#7c6fff" stroke-width="0.4" opacity="0.18"/>
+        <line x1="0" y1="64" x2="128" y2="64" stroke="#7c6fff" stroke-width="0.4" opacity="0.18"/>
+        <line x1="0" y1="96" x2="128" y2="96" stroke="#7c6fff" stroke-width="0.4" opacity="0.18"/>
+        <path d="M64 18 L94 30 L94 62 Q94 88 64 102 Q34 88 34 62 L34 30 Z" fill="url(#sh)" filter="url(#g)"/>
+        <path d="M64 24 L88 34 L88 62 Q88 84 64 96 Q40 84 40 62 L40 34 Z" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.4"/>
+        <line x1="64" y1="42" x2="64" y2="52" stroke="white" stroke-width="1.5" opacity="0.9"/>
+        <line x1="55" y1="52" x2="73" y2="52" stroke="white" stroke-width="1.5" opacity="0.9"/>
+        <line x1="55" y1="52" x2="55" y2="62" stroke="white" stroke-width="1.5" opacity="0.9"/>
+        <line x1="73" y1="52" x2="73" y2="62" stroke="white" stroke-width="1.5" opacity="0.9"/>
+        <line x1="52" y1="62" x2="76" y2="62" stroke="white" stroke-width="1.5" opacity="0.9"/>
+        <line x1="64" y1="62" x2="64" y2="74" stroke="white" stroke-width="1.5" opacity="0.9"/>
+        <circle cx="64" cy="42" r="3" fill="white" opacity="0.95"/>
+        <circle cx="55" cy="62" r="2.5" fill="#a78bfa" opacity="0.95"/>
+        <circle cx="73" cy="62" r="2.5" fill="#a78bfa" opacity="0.95"/>
+        <circle cx="64" cy="74" r="3.5" fill="white" opacity="0.95" filter="url(#g)"/>
+      </svg>
+      <span class="logo-text">Priv<span>Aware</span></span>
+    </div>
+    <span class="version-pill">v2.0</span>
+  </div>
+
+  <!-- SITE BAR -->
+  <div class="site-bar">
+    <div class="site-dot"></div>
+    <div class="site-url" id="current-url">Loading...</div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading-state">
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+      <div class="spinner-inner"></div>
+    </div>
+    <div class="loading-text">Running AI models...</div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-box" id="error-state" style="display:none">Unable to scan this page.</div>
+
+  <!-- MAIN -->
+  <div id="main-content">
+
+    <!-- Score hero -->
+    <div class="score-hero">
+      <div class="ring-wrap">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle class="ring-bg" cx="44" cy="44" r="38"/>
+          <circle class="ring-fill" id="score-circle" cx="44" cy="44" r="38"
+            stroke="#ff4d6d" stroke-dashoffset="150"/>
+        </svg>
+        <div class="ring-center">
+          <span class="ring-score" id="score-number">--</span>
+          <span class="ring-max">/100</span>
+        </div>
+      </div>
+      <div class="score-meta">
+        <div class="risk-label" id="risk-label">Analyzing...</div>
+        <div class="risk-sub"  id="risk-detail">Please wait</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Model cards -->
+    <div class="cards-wrap">
+      <div class="model-card">
+        <div class="card-top">
+          <div class="card-label">
+            <div class="card-icon icon-phish">🎣</div>
+            Phishing detector
+          </div>
+          <span class="badge badge-neutral" id="phishing-badge">—</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="phishing-bar" style="width:0%;background:var(--danger)"></div></div>
+        <div class="card-meta" id="phishing-meta">DistilBERT · V3d4nt7/privaware-phishing-detector</div>
+      </div>
+
+      <div class="model-card">
+        <div class="card-top">
+          <div class="card-label">
+            <div class="card-icon icon-policy">📄</div>
+            Privacy policy
+          </div>
+          <span class="badge badge-neutral" id="policy-badge">—</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="policy-bar" style="width:0%;background:var(--brand)"></div></div>
+        <div class="card-meta" id="policy-meta">DistilBERT · V3d4nt7/privaware-policy-classifier</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Trackers -->
+    <div class="trackers-section" style="padding-top:11px">
+      <div class="section-label">Trackers detected</div>
+      <div class="tags-wrap" id="tracker-tags">
+        <span class="tag tag-clean">Scanning...</span>
+      </div>
+    </div>
+
+    <!-- Explanation -->
+    <div class="explanation" style="margin-top:12px">
+      <div class="exp-label">AI Summary</div>
+      <div class="exp-text" id="explanation-text">Analyzing page resources...</div>
+    </div>
+
+    <!-- Rescan -->
+    <button class="rescan-btn" id="rescan-btn">↺ &nbsp;Rescan this page</button>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span class="footer-time" id="scan-time">—</span>
+    <a class="footer-link" id="history-link">History →</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
